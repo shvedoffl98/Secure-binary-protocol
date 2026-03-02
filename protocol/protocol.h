@@ -6,6 +6,12 @@
 #include <vector>
 
 
+namespace secmes
+{
+
+namespace protocol
+{
+
 struct __attribute__((packed)) protocol_header_t
 {
     uint8_t magic {};
@@ -31,5 +37,8 @@ struct __attribute__((packed)) message_header_t
 
 struct __attribute__((packed)) message_payload_t
 {
-    std::vector<uint8_t> cores {};
+    std::array<uint8_t, 60> cores {};
 };
+
+}
+}
