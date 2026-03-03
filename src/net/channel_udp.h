@@ -3,6 +3,7 @@
 #include <cstring>
 #include <utility>
 #include <iostream>
+#include <mutex>
 
 #include <arpa/inet.h>
 
@@ -40,7 +41,10 @@ private:
 /* Constructors */
 public:
     explicit SocketUDP(l3_channel_config_t&& cfg)
-    : config(std::move(cfg))
+    : sock_fd(udp_socket_traits::sock_fd_not_inited),
+      config(std::move(cfg)),
+      r_mtx {},
+      w_mtx {}
     {}
 
     SocketUDP() = delete;
@@ -49,26 +53,27 @@ public:
 public:
     bool init_impl()
     {
+        std::scoped_lock lock(r_mtx, w_mtx);
         bool ret_val {true};
-        struct sockaddr_in sock_addr {};
-        sock_addr = {.sin_family = udp_socket_traits::domain_v4,
-                     .sin_port = htons(config.port)};
+        if (sock_fd == udp_socket_traits::sock_fd_not_inited) {
+            struct sockaddr_in sock_addr {};
+            sock_addr = {.sin_family = udp_socket_traits::domain_v4,
+                        .sin_port = htons(config.port)};
 
-        inet_aton(config.ip.c_str(), &sock_addr.sin_addr);
-        sock_fd = socket(sock_addr.sin_family,
-                         udp_socket_traits::type,
-                         udp_socket_traits::protocol);
+            inet_aton(config.ip.c_str(), &sock_addr.sin_addr);
+            sock_fd = socket(sock_addr.sin_family,
+                            udp_socket_traits::type,
+                            udp_socket_traits::protocol);
 
-        if (!_bind_impl(sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr))) {
-            ret_val = false;
+            if (!_bind_impl(sock_fd, (struct sockaddr*)&sock_addr, sizeof(sock_addr))) {
+                ret_val = false;
+            }
         }
-
         return ret_val;
     }
 
     void read_impl()
     {
-
     }
 
     void write_impl()
@@ -91,11 +96,12 @@ private:
             != udp_socket_traits::sock_fd_not_inited;
     }
 
-
 /* Owning obkects*/
 private:
     socket_fd_t sock_fd;
     l3_channel_config_t config;
+    std::mutex r_mtx;
+    std::mutex w_mtx;
 };
 
 }
