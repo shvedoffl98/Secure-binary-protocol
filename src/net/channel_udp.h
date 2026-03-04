@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <cassert>
 
 #include "channel_base.h"
@@ -57,7 +58,8 @@ private:
 /* Constructors */
 public:
     explicit SocketUDP(udp_ch_init_dto_t&& cfg)
-    : sock_fd(udp_ch_traits_t::sock_fd_not_inited),
+    : all_closed {false},
+      sock_fd(udp_ch_traits_t::sock_fd_not_inited),
       epfd {},
       config(std::move(cfg)),
       r_mtx {},
@@ -65,6 +67,12 @@ public:
     {}
 
     SocketUDP() = delete;
+    ~SocketUDP() noexcept(true)
+    {
+        if (!all_closed) {
+            _close_save();
+        }
+    }
 
 /* Public API */
 public:
@@ -154,6 +162,7 @@ public:
 
     void close_impl()
     {
+        _close_save();
     }
 
 /* Private methods */
@@ -188,11 +197,33 @@ private:
         return ret_val;
     }
 
+    void _close_save()
+    {
+        /**
+         * TODO: Think about error handling.
+         */
+        std::scoped_lock lock(r_mtx, w_mtx);
+        if (!all_closed) {
+            if (close(sock_fd) < 0) {
+                /* log error */
+                all_closed = false;
+            }
+
+            if (close(epfd) < 0) {
+                /* log error */
+            }
+            all_closed = true;
+        }
+    }
+
 /* Owning obkects*/
 private:
+    bool all_closed;
     socket_fd_t sock_fd;
     epoll_fd_t epfd;
+
     udp_ch_init_dto_t config;
+
     std::mutex r_mtx;
     std::mutex w_mtx;
 };
