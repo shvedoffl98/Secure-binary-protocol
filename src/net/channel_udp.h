@@ -20,34 +20,44 @@ namespace secmes
 namespace network
 {
 
-class SocketUDP;
-
-template<>
-struct l3_channel_traits<SocketUDP>
-{
-    using domain_t = int32_t;
-    using protocol_t = int32_t;
-    using type_t = int32_t;
-    static constexpr domain_t domain_v4 = AF_INET;
-    static constexpr domain_t domain_v6 = AF_INET6;
-    static constexpr protocol_t protocol = IPPROTO_UDP;
-    static constexpr type_t type = SOCK_DGRAM;
-    static constexpr uint8_t sock_fd_not_inited = -1;
-};
-
-
 class SocketUDP : public ChannelBase<SocketUDP>
 {
+public:
+    /* UDP config */
+    struct udp_ch_init_dto_t
+    {
+        ip_from_config_t ip {};
+        port_type_t port {};
+    };
+
+    struct udp_ch_traits_t
+    {
+        using domain_t = int32_t;
+        using protocol_t = int32_t;
+        using type_t = int32_t;
+        static constexpr domain_t domain_v4 = AF_INET;
+        static constexpr domain_t domain_v6 = AF_INET6;
+        static constexpr protocol_t protocol = IPPROTO_UDP;
+        static constexpr type_t type = SOCK_DGRAM;
+        static constexpr uint8_t sock_fd_not_inited = -1;
+    };
+
+    struct udp_ch_write_dto_t
+    {
+        ip_from_config_t send2ip {};
+        port_type_t port {};
+        std::vector<std::byte> data {};
+    };
+
 /* Aliases */
 private:
-    using udp_socket_traits = l3_channel_traits<SocketUDP>;
     using sock_len_t = uint32_t;
     using epoll_fd_t = int32_t;
 
 /* Constructors */
 public:
-    explicit SocketUDP(l3_channel_config_t&& cfg)
-    : sock_fd(udp_socket_traits::sock_fd_not_inited),
+    explicit SocketUDP(udp_ch_init_dto_t&& cfg)
+    : sock_fd(udp_ch_traits_t::sock_fd_not_inited),
       epfd {},
       config(std::move(cfg)),
       r_mtx {},
@@ -62,15 +72,15 @@ public:
     {
         std::scoped_lock lock(r_mtx, w_mtx);
         bool ret_val {true};
-        if (sock_fd == udp_socket_traits::sock_fd_not_inited) {
+        if (sock_fd == udp_ch_traits_t::sock_fd_not_inited) {
             struct sockaddr_in sock_addr {};
-            sock_addr = {.sin_family = udp_socket_traits::domain_v4,
+            sock_addr = {.sin_family = udp_ch_traits_t::domain_v4,
                         .sin_port = htons(config.port)};
 
             inet_aton(config.ip.c_str(), &sock_addr.sin_addr);
             sock_fd = socket(sock_addr.sin_family,
-                            udp_socket_traits::type,
-                            udp_socket_traits::protocol);
+                            udp_ch_traits_t::type,
+                            udp_ch_traits_t::protocol);
 
             fcntl(sock_fd, F_SETFL, O_NONBLOCK);
 
@@ -123,17 +133,17 @@ public:
         return ret_val;
     }
 
-    bool write_impl(channel_write_data_udp_t&& cfg)
+    bool write_impl(udp_ch_write_dto_t&& cfg)
     {
         bool ret_val {true};
         struct sockaddr_in sock_addr {};
-        sock_addr = {.sin_family = udp_socket_traits::domain_v4,
+        sock_addr = {.sin_family = udp_ch_traits_t::domain_v4,
                      .sin_port = htons(cfg.port)};
 
         inet_aton(cfg.send2ip.c_str(), &sock_addr.sin_addr);
         sock_fd = socket(sock_addr.sin_family,
-                        udp_socket_traits::type,
-                        udp_socket_traits::protocol);
+                        udp_ch_traits_t::type,
+                        udp_ch_traits_t::protocol);
 
         sock_len_t len = sizeof(sock_addr);
         if(sendto(sock_fd, cfg.data.data(), cfg.data.size(), 0, (struct sockaddr*)&sock_addr, len) < 0) {
@@ -153,7 +163,7 @@ private:
                         sock_len_t sock_len)
     {
         return bind(sock_fd, sock_addr, sock_len)
-            != udp_socket_traits::sock_fd_not_inited;
+            != udp_ch_traits_t::sock_fd_not_inited;
     }
 
     bool _do_modify_epoll(EPOLL_EVENTS event, decltype(EPOLL_CTL_ADD) action)
@@ -182,7 +192,7 @@ private:
 private:
     socket_fd_t sock_fd;
     epoll_fd_t epfd;
-    l3_channel_config_t config;
+    udp_ch_init_dto_t config;
     std::mutex r_mtx;
     std::mutex w_mtx;
 };
