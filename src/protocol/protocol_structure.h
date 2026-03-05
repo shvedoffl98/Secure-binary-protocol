@@ -74,11 +74,14 @@ struct __attribute__((packed)) message_payload_t<message_type_e::HANDSHAKE_FINIS
 
 
 template <>
-struct __attribute__((packed)) message_payload_t<message_type_e::DATA_UNIT>
+struct message_payload_t<message_type_e::DATA_UNIT>
 {
+    static constexpr decltype(PACKET_SIZE_BYTES) DATA_UNIT_SIZE_BYTES =
+        PACKET_SIZE_BYTES - sizeof(protocol_header_t) - sizeof(message_header_t);
+
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
-    std::array<std::byte, 1149> hmac_tag;
+    std::array<std::byte, DATA_UNIT_SIZE_BYTES> hmac_tag {};
 };
 
 }
