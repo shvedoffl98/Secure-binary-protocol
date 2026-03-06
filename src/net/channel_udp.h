@@ -15,7 +15,7 @@
 #include "channel_base.h"
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace network

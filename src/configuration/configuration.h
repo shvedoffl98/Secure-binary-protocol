@@ -3,7 +3,7 @@
 #include <cstdint>
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace config

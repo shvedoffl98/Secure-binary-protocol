@@ -16,7 +16,7 @@
 class SocketUDP;
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace network

@@ -1,7 +1,7 @@
 #include "channel_udp.h"
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace network

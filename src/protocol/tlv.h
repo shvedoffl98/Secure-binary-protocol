@@ -6,7 +6,7 @@
 #include <vector>
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace protocol

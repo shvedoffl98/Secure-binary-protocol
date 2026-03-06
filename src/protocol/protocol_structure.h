@@ -8,7 +8,7 @@
 #include "tlv.h"
 
 
-namespace secmes
+namespace shadow
 {
 
 namespace protocol
