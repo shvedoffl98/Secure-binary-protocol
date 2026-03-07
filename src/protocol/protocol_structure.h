@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "tlv.h"
-#include "../crypto/openssl_wrapper.h"
+#include "../crypto/crypto_provider.h"
 
 
 namespace shadow
@@ -58,7 +58,7 @@ struct __attribute__((packed)) message_payload_t;
 template <>
 struct __attribute__((packed)) message_payload_t<message_type_e::CLIENT_HELLO>
 {
-    using diffie_hellman_t = shadow::network::crypto::diffie_hellman_X25519_traits_t;
+    using diffie_hellman_t = shadow::crypto::diffie_hellman_X25519_traits_t;
 
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
@@ -69,7 +69,7 @@ struct __attribute__((packed)) message_payload_t<message_type_e::CLIENT_HELLO>
 template <>
 struct __attribute__((packed)) message_payload_t<message_type_e::SERVER_HELLO>
 {
-    using diffie_hellman_t = shadow::network::crypto::diffie_hellman_X25519_traits_t;
+    using diffie_hellman_t = shadow::crypto::diffie_hellman_X25519_traits_t;
 
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};

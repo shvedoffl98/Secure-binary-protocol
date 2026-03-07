@@ -3,15 +3,13 @@
 #include <array>
 #include <utility>
 #include <memory>
+#include <iostream>
 
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 
 
 namespace shadow
-{
-
-namespace network
 {
 
 namespace crypto
@@ -52,7 +50,7 @@ public:
 
         /* Allocates public key algorithm context */
         EVP_PKEY_CTX* ctx = nullptr;
-        if constexpr (std::is_same_v<DH_ALGO, diffie_hellman_X25519_traits_t>()) {
+        if constexpr (std::is_same_v<DH_ALGO, diffie_hellman_X25519_traits_t>) {
             ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_X25519, nullptr);
         } else {
             // error
@@ -83,22 +81,24 @@ public:
         typename HASH_ALGO::ret_val_t ret_val {};
         uint32_t hash_len {};
 
-        /* Allocates public key algorithm context */
-        EVP_MD_CTX* ctx = nullptr;
-        if constexpr (std::is_same_v<HASH_ALGO, hash_sha256_hmac_traits_t>()) {
-            EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr);
+        /* Return value */
+        std::invoke_result_t<decltype(EVP_sha256)> md = nullptr;
+        EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+        if constexpr (std::is_same_v<HASH_ALGO, hash_sha256_hmac_traits_t>) {
+            md = EVP_sha256();
         } else {
             // error
         }
 
+        EVP_DigestInit_ex(ctx, md, nullptr);
         EVP_DigestUpdate(ctx, plaintext_p, len);
-        EVP_DigestFinal_ex(ctx, ret_val.data(), &hash_len);
-
+        EVP_DigestFinal_ex(ctx, reinterpret_cast<uint8_t*>(ret_val.data()), &hash_len);
         EVP_MD_CTX_free(ctx);
-        ret_val.resize(hash_len);
+
+        static_assert(ret_val.size() == HASH_ALGO::ret_size_b);
+
         return ret_val;
     }
 };
-}
 }
 }
