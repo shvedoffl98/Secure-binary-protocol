@@ -39,7 +39,17 @@ int main(int argc, char** argv)
 
     auto [pub, priv] = shadow::crypto::CryptoProvider::get_pub_priv_keys<shadow::crypto::diffie_hellman_X25519_traits_t>();
 
+    for (const auto& x : pub) {
+        std::cout << x << " ";
+    }
+    std::cout << std::endl;
+
     auto ret = shadow::crypto::CryptoProvider::get_hash<shadow::crypto::hash_sha256_hmac_traits_t>((reinterpret_cast<const uint8_t*>(str.data())), strlen(str.data()));
+
+    for (const auto& x : ret) {
+        std::cout << x << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
 }
