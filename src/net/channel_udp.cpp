@@ -24,7 +24,7 @@ SocketUDP::~SocketUDP() noexcept(true)
     _close_save();
 }
 
-std::optional<std::vector<std::byte>> SocketUDP::read_impl()
+std::optional<std::vector<uint8_t>> SocketUDP::read_impl()
 {
     /**
      * TODO: Make expandable to work with 1+ sockets.
@@ -33,14 +33,14 @@ std::optional<std::vector<std::byte>> SocketUDP::read_impl()
     std::lock_guard<std::mutex> lock(r_mtx);
 
     /* Return value */
-    std::optional<std::vector<std::byte>> ret_val {std::nullopt};
+    std::optional<std::vector<uint8_t>> ret_val {std::nullopt};
 
     if (sock_fd != udp_ch_traits_t::sock_fd_not_inited) {
         /* Just one socket fd */
         struct epoll_event events[1] {};
         int32_t socket_ready {};
 
-        std::vector<std::byte> vec {};
+        std::vector<uint8_t> vec {};
         vec.resize(protocol::PACKET_SIZE_BYTES);
         socket_ready = epoll_wait(epfd, events, 1, -1);
 

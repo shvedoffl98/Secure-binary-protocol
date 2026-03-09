@@ -18,7 +18,7 @@ namespace protocol
 
 enum class message_type_e : uint8_t
 {
-    CLIENT_HELLO = 0,
+    CLIENT_HELLO = 1,
     SERVER_HELLO,
     HANDSHAKE_FINISH,
     DATA_UNIT
@@ -30,8 +30,8 @@ constexpr uint16_t PACKET_SIZE_BYTES = 1200;
 /* Protocol header */
 struct __attribute__((packed)) protocol_header_t
 {
-    uint8_t magic {};
-    uint8_t protocol_version {};
+    static constexpr std::array<uint8_t, 3> magic {'O', 'B', 'S'};
+    uint16_t version {};
     uint8_t message_type {};
 };
 
@@ -52,49 +52,50 @@ struct __attribute__((packed)) message_header_t
  * Should be all std::is_standard_layout<T> == true.
  */
 template <message_type_e msg_type>
-struct __attribute__((packed)) message_payload_t;
+struct __attribute__((packed)) message_t;
 
 
 template <>
-struct __attribute__((packed)) message_payload_t<message_type_e::CLIENT_HELLO>
+struct __attribute__((packed)) message_t<message_type_e::CLIENT_HELLO>
 {
     using diffie_hellman_t = shadow::crypto::diffie_hellman_X25519_traits_t;
 
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
-    std::array<std::byte, diffie_hellman_t::ret_size_b> client_public_key;
+    std::array<uint8_t, diffie_hellman_t::ret_size_b> client_public_key;
 };
 
 
 template <>
-struct __attribute__((packed)) message_payload_t<message_type_e::SERVER_HELLO>
+struct __attribute__((packed)) message_t<message_type_e::SERVER_HELLO>
 {
     using diffie_hellman_t = shadow::crypto::diffie_hellman_X25519_traits_t;
 
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
-    std::array<std::byte, diffie_hellman_t::ret_size_b> server_public_key;
+    std::array<uint8_t, diffie_hellman_t::ret_size_b> server_public_key;
 };
 
 
 template <>
-struct __attribute__((packed)) message_payload_t<message_type_e::HANDSHAKE_FINISH>
+struct __attribute__((packed)) message_t<message_type_e::HANDSHAKE_FINISH>
 {
+    using hash_sha256_t = shadow::crypto::hash_sha256_hmac_traits_t;
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
-    std::array<std::byte, 16> hmac_tag;
+    std::array<uint8_t, hash_sha256_t::ret_size_b> hmac_tag;
 };
 
 
 template <>
-struct message_payload_t<message_type_e::DATA_UNIT>
+struct message_t<message_type_e::DATA_UNIT>
 {
     static constexpr decltype(PACKET_SIZE_BYTES) DATA_UNIT_SIZE_BYTES =
         PACKET_SIZE_BYTES - sizeof(protocol_header_t) - sizeof(message_header_t);
 
     protocol_header_t prt_hdr {};
     message_header_t msg_hdr {};
-    std::array<std::byte, DATA_UNIT_SIZE_BYTES> hmac_tag {};
+    std::array<uint8_t, DATA_UNIT_SIZE_BYTES> hmac_tag {};
 };
 
 }

@@ -56,7 +56,7 @@ public:
     {
         ip_from_config_t send2ip {};
         port_type_t port {};
-        std::vector<std::byte> data {};
+        std::vector<uint8_t> data {};
     };
 
 /* Aliases */
@@ -74,7 +74,7 @@ public:
 
 /* Public API */
 public:
-    std::optional<std::vector<std::byte>> read_impl();
+    std::optional<std::vector<uint8_t>> read_impl();
     bool write_impl(udp_ch_write_dto_t&& cfg);
 
 /* Private methods */

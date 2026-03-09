@@ -31,7 +31,7 @@ using ip_from_config_t = std::string;
 /* Concepts (constraints) for CHANNEL CRTP fabric */
 template <typename CHANNEL_TYPE>
 concept HasRead = requires(CHANNEL_TYPE t) {
-    { t.read_impl() } -> std::same_as<std::optional<std::vector<std::byte>>>;
+    { t.read_impl() } -> std::same_as<std::optional<std::vector<uint8_t>>>;
 };
 
 template <typename CHANNEL_TYPE>
@@ -52,7 +52,7 @@ public:
     ~ChannelBase() = default;
 
 public:
-    std::optional<std::vector<std::byte>> read_base()
+    std::optional<std::vector<uint8_t>> read_base()
         requires ChannelLike<ChannelDerived>
     { return derived().read_impl(); }
 

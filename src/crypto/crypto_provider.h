@@ -26,7 +26,6 @@ struct hash_sha256_hmac_traits_t
 {
     hash_sha256_hmac_traits_t() = delete;
     static constexpr uint8_t ret_size_b = 32;
-    static constexpr uint8_t HMAC_SHA256_ret_size_b = ret_size_b;
     using ret_val_t = std::array<uint8_t, ret_size_b>;
 };
 
