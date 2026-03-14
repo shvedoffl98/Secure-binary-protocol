@@ -30,7 +30,7 @@ constexpr uint16_t PACKET_SIZE_BYTES = 1200;
 /* Protocol header */
 struct __attribute__((packed)) protocol_header_t
 {
-    static constexpr std::array<uint8_t, 3> magic {'O', 'B', 'S'};
+    std::array<uint8_t, 3> magic {'O', 'B', 'S'};
     uint16_t version {};
     uint8_t message_type {};
 };

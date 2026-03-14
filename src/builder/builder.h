@@ -25,7 +25,7 @@ public:
                                                shadow::protocol::message_t<MSG_TYPE>&&>;
         ret_val_t ret_val {};
         _build_protocol_header(msg.prt_hdr, /*OUT*/ret_val);
-        _build_message_header(msg, /*OUT*/ret_val);
+        _build_message_header(msg.msg_hdr, /*OUT*/ret_val);
         // _build_payload(msg, /*OUT*/ret_val);
         return ret_val;
     }
@@ -50,7 +50,7 @@ public:
         return ret_val;
     }
 
-    static void _build_message_header(shadow::protocol::message_header_t&& msg_hdr,
+    static void _build_message_header(const shadow::protocol::message_header_t& msg_hdr,
                                       /*OUT*/ std::vector<uint8_t>& vec)
     {
         vec.push_back(utils::UtilityProvider::htonll(msg_hdr.session_id));
